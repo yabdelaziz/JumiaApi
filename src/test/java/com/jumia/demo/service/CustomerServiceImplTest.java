@@ -1,67 +1,49 @@
 package com.jumia.demo.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.RestTemplate;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.jumia.demo.model.Customer;
 import com.jumia.demo.dto.CustomerDto;
+import com.jumia.demo.dto.PhoneNoRegex;
 import com.jumia.demo.repository.CustomerRepository;
+import com.jumia.demo.service.CustomerService;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 class CustomerServiceImplTest {
-	@Mock
-	CustomerRepository customerRepositoryTest;
 
-	@BeforeEach
-	void setUp() {
-		List<CustomerDto> customerDtos = new ArrayList<CustomerDto>();
-		CustomerDto customer1 = new CustomerDto();
-		customer1.setId(1);
-		customer1.setName("Walid Hammadi");
-		customer1.setPhone("(212) 6007989253");
-		
-		customerDtos.add(customer1);
-		
-		CustomerDto customer2 = new CustomerDto();
-		customer1.setId(1);
-		customer1.setName("Yosaf Karrouch");
-		customer1.setPhone("(212) 698054317");
-		
-		customerDtos.add(customer2);
-	}
+	@Autowired
+	CustomerService customerService;
+
+	@MockBean
+	private RestTemplate template;
 	
-//	@Test
-//	void testAllCustomersDTOsRetreivedSuccessfully() {
-//		List<CustomerDto> customerDtos = new ArrayList<CustomerDto>();
-//		customerDtos.add(customerRepositoryTest.findById(0));
-//		customerDtos.add(customerRepositoryTest.findById(1));
-//		customerDtos.add(customer2);
-//		assertEquals(expected, actual);;
-//	}
-//	
-//
-//	    @Test
-//	    public void testSearchSync() throws Exception {
-//
-//	        // Mocking service
-//	        when(mangaService.getMangasByTitle(any(String.class))).thenReturn(mangas);
-//
-//	        mockMvc.perform(get("/manga/sync/ken").contentType(MediaType.APPLICATION_JSON))
-//	            .andExpect(status().isOk())
-//	            .andExpect(jsonPath("$[0].title", is("Hokuto no ken")))
-//	            .andExpect(jsonPath("$[1].title", is("Yumekui Kenbun")));
-//	    }
-
-
+	@Test
+    public void testgetAllCustomersByCountry() throws IOException {
+        // Parsing mock file
+        //MangaResult mRs = JsonUtils.jsonFile2Object("ken.json", MangaResult.class);
+        // Mocking remote service
+        when(template.getForEntity(any(PhoneNoRegex.class), any(Class.class))).thenReturn(new ResponseEntity(CustomerDto, HttpStatus.OK));
+        // I search for goku but system will use mocked response containing only ken, so I can check that mock is used.
+        List<Customer> customersByTitle = customerService.getAllCustomers(PhoneNoRegex.MOROCCO);
+        assertThat(customersByTitle).isNotNull()
+            .isNotEmpty()
+            .allMatch(p -> p.getPhone()
+                .contains("212"));
+    }
 }
