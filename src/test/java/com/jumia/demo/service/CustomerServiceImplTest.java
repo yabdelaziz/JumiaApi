@@ -1,5 +1,6 @@
 package com.jumia.demo.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -15,17 +16,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
-import static org.assertj.core.api.Assertions.assertThat;
 
-import com.jumia.demo.model.Customer;
 import com.jumia.demo.dto.CustomerDto;
 import com.jumia.demo.dto.PhoneNoRegex;
-import com.jumia.demo.repository.CustomerRepository;
-import com.jumia.demo.service.CustomerService;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-class CustomerServiceImplTest {
+public class CustomerServiceImplTest {
 
 	@Autowired
 	CustomerService customerService;
@@ -35,12 +32,12 @@ class CustomerServiceImplTest {
 	
 	@Test
     public void testgetAllCustomersByCountry() throws IOException {
-        // Parsing mock file
-        //MangaResult mRs = JsonUtils.jsonFile2Object("ken.json", MangaResult.class);
+
+        CustomerDto customerDto = new CustomerDto();
         // Mocking remote service
-        when(template.getForEntity(any(PhoneNoRegex.class), any(Class.class))).thenReturn(new ResponseEntity(CustomerDto, HttpStatus.OK));
+        when(template.getForEntity(any(String.class), any(Class.class))).thenReturn(new ResponseEntity(customerDto, HttpStatus.OK));
         // I search for goku but system will use mocked response containing only ken, so I can check that mock is used.
-        List<Customer> customersByTitle = customerService.getAllCustomers(PhoneNoRegex.MOROCCO);
+        List<CustomerDto> customersByTitle = customerService.getAllCustomers(PhoneNoRegex.MOROCCO);
         assertThat(customersByTitle).isNotNull()
             .isNotEmpty()
             .allMatch(p -> p.getPhone()
